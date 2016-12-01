@@ -1,0 +1,71 @@
+<html>
+	<head>
+		<title>Music DB</title>
+		<script>
+		function setCookie(cname, cvalue) {
+		    var d = new Date();
+		    
+		    document.cookie = cname + "=" + cvalue;
+		    
+		    var xhttp = new XMLHttpRequest();
+		    
+		    xhttp.onreadystatechange = function() {
+		      if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        var resp = xhttp.responseText;
+		        alert(resp);
+		      }
+		    };
+		    
+		    xhttp.open("GET", "login?username=" + cvalue, true);
+		    xhttp.send();
+		    document.getElementById("username").style.display = "block";
+		    document.getElementById("username").innerHTML = cvalue;
+		}
+
+		function getCookie(cname) {
+		    var name = cname + "=";
+		    var ca = document.cookie.split(';');
+		    for(var i = 0; i < ca.length; i++) {
+		        var c = ca[i];
+		        while (c.charAt(0) == ' ') {
+		            c = c.substring(1);
+		        }
+		        if (c.indexOf(name) == 0) {
+		            return c.substring(name.length, c.length);
+		        }
+		    }
+		    return "";
+		}
+
+		function checkCookie() {
+		    var user = getCookie("username");
+		    if (user != "") {
+				document.getElementById("username").style.display = "block";
+				document.getElementById("username").innerHTML = user;
+		    } else {
+		        user = prompt("\tLogin/Register\n\n\tPlease enter your username.\n\n\tDon't have a login? This will register you.", "");
+		        if (user != "" && user != null) {
+		            setCookie("username", user);
+		        }
+		    }
+		}
+		</script>
+	</head>
+
+	<body onload="checkCookie()">
+		
+		<div id="username" class="user" style="display:none;font-size:30px;text-align:right;padding-right:25px;"></div>
+		
+		<h1>Music Database</h1>
+		<br>
+		This is where we have our form(s)
+		<br>
+		
+		<form action="music" method="get">
+			Enter something here: <input type = "text" name="something"><br>
+			<input type="submit" value="Submit">
+		</form>
+	</body>
+	
+	
+</html>

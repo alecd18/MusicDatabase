@@ -1,0 +1,482 @@
+<html>
+	<head>
+		<title>Music DB</title>
+		<style>
+			/* The Modal (background) */
+			.modal {
+			    display: none; /* Hidden by default */
+			    position: fixed; /* Stay in place */
+			    z-index: 1; /* Sit on top */
+			    padding-top: 100px; /* Location of the box */
+			    left: 0;
+			    top: 0;
+			    width: 100%; /* Full width */
+			    height: 100%; /* Full height */
+			    overflow: auto; /* Enable scroll if needed */
+			    background-color: rgb(0,0,0); /* Fallback color */
+			    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+			}
+
+			/* Modal Content */
+			.modal-content {
+			    background-color: #fefefe;
+			    margin: auto;
+			    padding: 20px;
+			    border: 1px solid #888;
+			    width: 20%;
+			}
+
+			/* The Close Button */
+			.close {
+			    color: #aaaaaa;
+			    float: right;
+			    font-size: 28px;
+			    font-weight: bold;
+			}
+
+			.close:hover,
+			.close:focus {
+			    color: #000;
+			    text-decoration: none;
+			    cursor: pointer;
+			}
+		</style>
+		<script>
+		function setCookie(cname, cvalue) {
+		    var d = new Date();
+		    
+		    document.cookie = cname + "=" + cvalue;
+		    
+		    var xhttp = new XMLHttpRequest();
+		    
+		    xhttp.onreadystatechange = function() {
+		      if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        var resp = xhttp.responseText;
+		        alert(resp);
+		      }
+		    };
+		    
+		    xhttp.open("GET", "login?username=" + cvalue, true);
+		    xhttp.send();
+		    document.getElementById("username").style.display = "block";
+		    document.getElementById("username").innerHTML = cvalue;
+		}
+
+		function addFavorites(event) {
+			var target = getEventTarget(event);
+			var song = target.parentElement.getElementsByClassName('songTitle')[0];
+			var user = getCookie("username");
+			
+			var xhttp = new XMLHttpRequest();
+
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        var resp = xhttp.responseText;
+		        var dupString = 'duplicate key value';
+		         if (resp == 'success') {
+		         	var msg = '"' + song.innerHTML + '"' + ' has been added to your favorites!'
+		         	alert(msg);
+		         }
+		         else if (resp.indexOf(dupString) > -1) {
+		         	alert('"' + song.innerHTML + '"' + ' is already in your favorites.');
+		         }
+		         else {
+		         	alert('An Error has occurred while trying to add this song to your favorites. Please try again.');
+		         }
+		      }
+			}
+
+			xhttp.open("GET", "music?function=addFavorites&song=" + song.innerHTML + "&user=" + user, true);
+		    xhttp.send();
+		}
+
+		function removeFavorite(event) {
+			var target = getEventTarget(event);
+			var song = target.parentElement.getElementsByClassName('songTitle')[0];
+			var user = getCookie("username");
+			
+			var xhttp = new XMLHttpRequest();
+
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+					listFavorites();
+				}
+			}
+
+			xhttp.open("GET", "music?function=removeFavorite&song=" + song.innerHTML + "&user=" + user, true);
+		    xhttp.send();
+		}
+
+		function getArtists() {
+			var xhttp = new XMLHttpRequest();
+
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        var resp = xhttp.responseText;
+		        fillArtistsDDL(resp);
+		      }
+			}
+
+			xhttp.open("GET", "music?function=getArtists", true);
+		    xhttp.send();
+		}
+
+		function getVenues() {
+			var xhttp = new XMLHttpRequest();
+
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        var resp = xhttp.responseText;
+		        fillVenuesDDL(resp);
+		      }
+			}
+
+			xhttp.open("GET", "music?function=getVenues", true);
+		    xhttp.send();
+		}
+
+		function fillArtistsDDL(artistsString) {
+			var list = artistsString.split(':');
+			var select = document.getElementById('artistsList');
+			for (var i = 0; i < list.length; i++) {
+				var optString = list[i];
+				if (optString) {
+					var optElement = document.createElement("option");
+					optElement.textContent = optString;
+					optElement.value = optString;
+					select.appendChild(optElement);
+				}
+			}
+		}
+
+		function fillVenuesDDL(venuesString) {
+			var list = venuesString.split(':');
+			var select = document.getElementById('venuesList');
+			for (var i = 0; i < list.length; i++) {
+				var optString = list[i];
+				if (optString) {
+					var optElement = document.createElement("option");
+					optElement.textContent = optString;
+					optElement.value = optString;
+					select.appendChild(optElement);
+				}
+			}
+		}
+
+		function getEventTarget(e) {
+			e = e || window.event;
+			return e.target || e.srcElement;
+		}
+
+		function OpenInNewTab(url) {
+  			var win = window.open(url, '_blank');
+  			win.focus();
+		}
+
+		function getVideo(event) {
+			var target = getEventTarget(event);
+			var song = target.innerText;
+
+			var xhttp = new XMLHttpRequest();
+
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        var resp = xhttp.responseText;
+		        if (resp) {
+		        	OpenInNewTab(resp);
+		        }
+		        else {
+		        	alert('There is no music video for this song!');
+		        }
+		      }
+			}
+
+			xhttp.open("GET", "music?function=getMV&song=" + song, true);
+		    xhttp.send();
+		}
+
+		function searchConcerts() {
+			var select = document.getElementById('venuesList');
+			var selectedVenue = select.options[select.selectedIndex].value;
+			selectedVenue = selectedVenue.replace('&', 'ampersand');
+
+			var xhttp = new XMLHttpRequest();
+
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        var resp = xhttp.responseText;
+		        	showVenueConcerts(resp);
+		      }
+			}
+
+			xhttp.open("GET", "music?function=getConcerts&venue=" + selectedVenue, true);
+		    xhttp.send();
+		}
+
+		function showArtistSongs(songsString) {
+			var list = songsString.split(':');
+
+			var listElement = document.getElementById("songsList");
+			listElement.innerHTML = "";
+
+			for (var i = 0; i < list.length; i++) {
+				if (list[i]) {
+					var item = document.createElement('li');
+					item.innerHTML = item.innerHTML + '<span class="songTitle" style="cursor:hand;" onclick="getVideo()">' + list[i] + '</span>';
+					item.innerHTML = item.innerHTML + ' <input type="button" value="Add to Favorites" onclick="addFavorites()">' + ' <input type="button" id="myBtn" value="Song Info" onclick="viewModal()">';
+					listElement.appendChild(item);
+				}
+			}
+
+			document.getElementById("mv_info").style.display = "block";
+		}
+
+		function showVenueConcerts(concertsString) {
+			var list = concertsString.split(':');
+
+			var listElement = document.getElementById('concertList');
+			listElement.innerHTML = "";
+
+			for (var i = 0; i < list.length; i++) {
+				if (list[i]) {
+					var item = document.createElement('li');
+					item.innerHTML = list[i];
+					listElement.appendChild(item);
+				}
+			}
+		}
+
+		function searchArtists() {
+			var select = document.getElementById("artistsList");
+			var selectedArtist = select.options[select.selectedIndex].value;
+
+			var xhttp = new XMLHttpRequest();
+
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        var resp = xhttp.responseText;
+		        	showArtistSongs(resp);
+		      }
+			}
+
+			xhttp.open("GET", "music?function=getArtistsSongs&artist=" + selectedArtist, true);
+		    xhttp.send();
+		}
+		
+		function showSongSearch(songsString) {
+			var list = songsString.split(':');
+
+			var listElement = document.getElementById("searchList");
+			listElement.innerHTML = "";
+
+			for (var i = 0; i < list.length; i++) {
+				if (list[i]) {
+					var item = document.createElement('li');
+					item.innerHTML = item.innerHTML + '<span class="songTitle" style="cursor:hand;" onclick="getVideo()">' + list[i] + '</span>';
+					item.innerHTML = item.innerHTML + ' <input type="button" value="Add to Favorites" onclick="addFavorites()">' + ' <input type="button" id="myBtn" value="Song Info" onclick="viewModal()">';
+					listElement.appendChild(item);
+				}
+			}
+
+			document.getElementById("mv_info").style.display = "block";
+		}
+		
+		function searchSongs() {
+			var text = document.getElementById("songSearch");
+			var enteredSong = text.value;
+
+			var xhttp = new XMLHttpRequest();
+
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        var resp = xhttp.responseText;
+		        	showSongSearch(resp);
+		      }
+			}
+			
+			xhttp.open("GET", "music?function=getSearchSongs&song=" + enteredSong, true);
+		    xhttp.send();
+		}
+		
+		function showFavorites(songsString) {
+			var list = songsString.split(':');
+
+			var listElement = document.getElementById("favoritesList");
+			listElement.innerHTML = "";
+
+			for (var i = 0; i < list.length; i++) {
+				if (list[i]) {
+					var item = document.createElement('li');
+					item.innerHTML = item.innerHTML + '<span class="songTitle" style="cursor:hand;" onclick="getVideo()">' + list[i] + '</span>' + ' <input type="button" id="myBtn" value="Song Info" onclick="viewModal()">' + ' <input type="button" value="Remove" onclick="removeFavorite()">';
+					listElement.appendChild(item);
+				}
+			}
+
+			document.getElementById("mv_info").style.display = "block";
+		}
+		
+		function listFavorites() {
+			var username = document.getElementById("username").innerHTML;
+
+			var xhttp = new XMLHttpRequest();
+
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        var resp = xhttp.responseText;
+		        	showFavorites(resp);
+		      }
+			}
+
+			xhttp.open("GET", "music?function=listFavorites&user=" + username, true);
+		    xhttp.send();
+		}
+
+		function getCookie(cname) {
+		    var name = cname + "=";
+		    var ca = document.cookie.split(';');
+		    for(var i = 0; i < ca.length; i++) {
+		        var c = ca[i];
+		        while (c.charAt(0) == ' ') {
+		            c = c.substring(1);
+		        }
+		        if (c.indexOf(name) == 0) {
+		            return c.substring(name.length, c.length);
+		        }
+		    }
+		    return "";
+		}
+
+		function checkCookie() {
+		    var user = getCookie("username");
+		    if (user != "") {
+				document.getElementById("username").style.display = "block";
+				document.getElementById("username").innerHTML = user;
+		    } else {
+		        user = prompt("\tLogin/Register\n\n\tPlease enter your username.\n\n\tDon't have a login? This will register you.", "");
+		        if (user != "" && user != null) {
+		            setCookie("username", user);
+		        }
+		    }
+		}
+
+		function viewModal(event) {
+			var target = getEventTarget(event);
+			var songEl = target.parentElement.getElementsByClassName('songTitle')[0];
+			var song = songEl.innerHTML;
+
+			var modalContent = document.getElementsByClassName('modal-content')[0];
+			modalContent.innerHTML = '<span class="close">×</span>';
+
+			var xhttp = new XMLHttpRequest();
+
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+		        	var resp = xhttp.responseText;
+		    		var modal = document.getElementById('myModal');
+		    		modalContent.innerHTML = '<span class="close">×</span>' + resp;
+					modal.style.display = "block";
+
+					var spanModal = document.getElementsByClassName('close')[0];
+					spanModal.onclick = function() {
+			    		modal.style.display = "none";
+					}
+		      }
+			}
+
+			xhttp.open("GET", "music?function=getSongInfo&song=" + song, true);
+		    xhttp.send();
+		}
+
+		function loadModal() {
+			var modal = document.getElementById('myModal');
+			var spanModal = document.getElementsByClassName('close')[0];
+			spanModal.onclick = function() {
+			    modal.style.display = "none";
+			}
+			window.onclick = function(event) {
+			    if (event.target == modal) {
+			        modal.style.display = "none";
+			    }
+			}
+		}
+
+		function loadPage() {
+			checkCookie();
+			getArtists();
+			getVenues();
+			loadModal();
+		}
+
+		</script>
+	</head>
+
+	<body onload="loadPage()">
+		
+		<table style="width:100%">
+		<tr>
+		<td>
+		<h1>Music Database</h1>
+		</td>
+		<td>
+		<div id="username" class="user" style="display:none;font-size:30px;text-align:right;padding-right:25px;"></div>
+		</td>
+		</tr>
+		</table>
+		
+		<p id="mv_info" style="display:none;color:blue">* Click on the song to view the music video</p>
+		
+		
+		<table style="width:100%;">
+		<tr>
+		<td valign="top" style="padding:25px">
+		<div>
+			<h3>Search Artists and Songs</h3>
+
+			<span>Artists: <select id="artistsList"></select>
+				<input type="button" value="Search Artists" onclick="searchArtists()">
+			</span>
+			<ul id="songsList" ></ul>
+		
+		
+			<span>Search Songs: <input type="text" id="songSearch">
+				<input type="button" value="Search Songs" onclick="searchSongs()">
+			</span>
+			<ul id="searchList" ></ul>
+		</div>
+		</td>
+		<td valign="top" style="padding:25px">
+		<div>
+			<h3>My Favorites</h3>
+			<span>Favorites:
+				<input type="button" value="View" onclick="listFavorites()">
+			</span>
+			<ul id="favoritesList" ></ul>
+		</div>
+		</td>
+		<td valign="top" style="padding:25px" align="right">
+		<div>
+			<h3>Search Venues for Upcoming Concerts</h3>
+			<span>Venues: <select id="venuesList"></select>
+				<input type="button" value="Search Upcoming Concerts" onclick="searchConcerts()">
+			</span>
+			<ul id="concertList" style="list-style: none;"></ul>
+		</div>
+		</td>
+		</tr>
+		</table>
+
+		<!-- The Modal -->
+		<div id="myModal" class="modal">
+
+		  <!-- Modal content -->
+		  <div class="modal-content">
+		  	<span class="close">×</span>
+		  </div>
+
+		</div>
+		
+		
+	</body>
+	
+	
+</html>
